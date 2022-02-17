@@ -19,7 +19,7 @@ import org.slf4j.MDC;
 
 public class MdcThreadLocalHolder {
 
-	private static final String key = "MDC-KEY";
+	public static final String key = "MDC-KEY";
 
 	public static void set(String value) {
 		MDC.put(key, value);

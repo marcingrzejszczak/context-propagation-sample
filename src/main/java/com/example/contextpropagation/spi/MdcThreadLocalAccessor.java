@@ -16,8 +16,8 @@
 package com.example.contextpropagation.spi;
 
 import com.example.contextpropagation.holder.MdcThreadLocalHolder;
-import reactor.netty.observability.contextpropagation.ContextContainer;
-import reactor.netty.observability.contextpropagation.ThreadLocalAccessor;
+import io.micrometer.contextpropagation.ContextContainer;
+import io.micrometer.contextpropagation.ThreadLocalAccessor;
 
 public class MdcThreadLocalAccessor implements ThreadLocalAccessor {
 
@@ -34,7 +34,7 @@ public class MdcThreadLocalAccessor implements ThreadLocalAccessor {
 	@Override
 	public void restoreValues(ContextContainer container) {
 		if (container.containsKey(KEY)) {
-			MdcThreadLocalHolder.set(KEY);
+			MdcThreadLocalHolder.set(container.get(KEY));
 		}
 	}
 

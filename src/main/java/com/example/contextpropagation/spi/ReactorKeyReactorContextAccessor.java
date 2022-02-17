@@ -1,6 +1,6 @@
 package com.example.contextpropagation.spi;
 
-import reactor.netty.observability.contextpropagation.ContextContainer;
+import io.micrometer.contextpropagation.ContextContainer;
 import reactor.netty.observability.contextpropagation.ReactorContextAccessor;
 import reactor.util.context.Context;
 import reactor.util.context.ContextView;
@@ -11,7 +11,9 @@ public class ReactorKeyReactorContextAccessor implements ReactorContextAccessor 
 
 	@Override
 	public void captureValues(ContextView view, ContextContainer container) {
-		container.put(key, view.get(key));
+		if (view.hasKey(key)) {
+			container.put(key, view.get(key));
+		}
 	}
 
 	@Override
