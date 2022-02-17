@@ -22,12 +22,12 @@ public class ReactorKeyReactorContextAccessor implements ContextAccessor<Context
 	}
 
 	@Override
-	public boolean supportsContextForSet(Object context) {
-		return context instanceof Context;
+	public Class<?> getSupportedContextClassForSet() {
+		return Context.class;
 	}
 
 	@Override
-	public boolean supportsContextForGet(Object context) {
-		return context instanceof ContextView;
+	public Class<?> getSupportedContextClassForGet() {
+		return ContextView.class;
 	}
 }
