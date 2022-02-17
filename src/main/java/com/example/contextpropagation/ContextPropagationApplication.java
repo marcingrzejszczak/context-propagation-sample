@@ -7,8 +7,6 @@ import com.example.contextpropagation.spi.MdcThreadLocalAccessor;
 import io.micrometer.contextpropagation.ContextContainer;
 import org.slf4j.MDC;
 import reactor.core.publisher.Mono;
-import reactor.netty.observability.contextpropagation.ReactorContextUtils;
-import reactor.util.context.Context;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -81,7 +79,7 @@ class MyWebFlux {
 
 					// TODO: why not container.capture(contextView) ? we wouldn't need any utils
 					// TODO: We could have an SPI (?) to plug in various mechanisms - or just utils for everything
-					ReactorContextUtils.captureReactorContext(contextView, container);
+					container.captureContext(contextView);
 
 					Assert.isTrue("REACTOR-VALUE".equals(container.get("REACTOR-KEY")), "Context propagation is not working for reactor accessors");
 					// Put container values back in thread local
@@ -101,7 +99,7 @@ class MyWebFilter implements WebFilter {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		return Mono.deferContextual(contextView -> {
-			ContextContainer container = ReactorContextUtils.create();
+			ContextContainer container = ContextContainer.create();
 			container.put(MdcThreadLocalAccessor.KEY, "THIS IS SET IN REACTOR BUT WILL BE RESOLVED AS THREAD LOCAL");
 			return chain.filter(exchange)
 					.contextWrite(context -> container.saveContainer(context.put("REACTOR-KEY", "REACTOR-VALUE")));
