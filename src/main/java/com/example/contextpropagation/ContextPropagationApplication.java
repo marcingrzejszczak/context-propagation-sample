@@ -48,7 +48,7 @@ class MyCommandLineRunner implements CommandLineRunner {
 				.bodyToMono(String.class)
 				.transformDeferredContextual((stringMono, contextView) -> stringMono.doOnNext(s -> {
 					// Retrieve the container from context
-					ContextContainer restoredContainer = ContextContainer.restoreContainer(contextView);
+					ContextContainer restoredContainer = ContextContainer.restore(contextView);
 					// Put container values back in thread local
 					try (ContextContainer.Scope scope = restoredContainer.restoreThreadLocalValues()) {
 						// Thread local
@@ -56,7 +56,7 @@ class MyCommandLineRunner implements CommandLineRunner {
 						Assert.isTrue("MDC-VALUE".equals(result), "Context propagation is not working");
 					}
 				}))
-				.contextWrite(container::saveContainer)
+				.contextWrite(container::save)
 				.block();
 
 		Assert.isTrue("bar".equals(string), "Boom!");
@@ -75,7 +75,7 @@ class MyWebFlux {
 		return Mono.just("bar")
 				.transformDeferredContextual((stringMono, contextView) -> stringMono.doOnNext(s -> {
 						// Retrieve the container from context
-					ContextContainer container = ContextContainer.restoreContainer(contextView);
+					ContextContainer container = ContextContainer.restore(contextView);
 
 					// TODO: why not container.capture(contextView) ? we wouldn't need any utils
 					// TODO: We could have an SPI (?) to plug in various mechanisms - or just utils for everything
@@ -102,7 +102,7 @@ class MyWebFilter implements WebFilter {
 			ContextContainer container = ContextContainer.create();
 			container.put(MdcThreadLocalAccessor.KEY, "THIS IS SET IN REACTOR BUT WILL BE RESOLVED AS THREAD LOCAL");
 			return chain.filter(exchange)
-					.contextWrite(context -> container.saveContainer(context.put("REACTOR-KEY", "REACTOR-VALUE")));
+					.contextWrite(context -> container.save(context.put("REACTOR-KEY", "REACTOR-VALUE")));
 		});
 	}
 }
