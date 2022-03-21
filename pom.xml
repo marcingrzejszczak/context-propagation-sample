@@ -16,7 +16,7 @@
 	<properties>
 		<java.version>17</java.version>
 		<micrometer-contextpropagation.version>1.0.0-SNAPSHOT</micrometer-contextpropagation.version>
-		<reactor-netty.version>1.0.16-SNAPSHOT</reactor-netty.version>
+		<reactor-netty.version>1.1.0-SNAPSHOT</reactor-netty.version>
 	</properties>
 	<dependencies>
 		<dependency>
