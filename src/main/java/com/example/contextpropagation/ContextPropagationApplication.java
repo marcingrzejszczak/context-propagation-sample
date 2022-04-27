@@ -1,12 +1,15 @@
 package com.example.contextpropagation;
 
 import java.awt.Container;
+import java.util.function.BiFunction;
 
 import com.example.contextpropagation.holder.MdcThreadLocalHolder;
 import com.example.contextpropagation.spi.MdcThreadLocalAccessor;
 import io.micrometer.contextpropagation.ContextContainer;
+import org.reactivestreams.Publisher;
 import org.slf4j.MDC;
 import reactor.core.publisher.Mono;
+import reactor.util.context.ContextView;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -46,21 +49,29 @@ class MyCommandLineRunner implements CommandLineRunner {
 				.get().uri("/foo")
 				.retrieve()
 				.bodyToMono(String.class)
-				.transformDeferredContextual((stringMono, contextView) -> stringMono.doOnNext(s -> {
-					// Retrieve the container from context
-					ContextContainer restoredContainer = ContextContainer.restore(contextView);
-					// Put container values back in thread local
+				.transformDeferredContextual(Foo.wrap((stringMono, restoredContainer) -> stringMono.doOnNext(s -> {
 					try (ContextContainer.Scope scope = restoredContainer.restoreThreadLocalValues()) {
 						// Thread local
 						String result = MDC.get(MdcThreadLocalHolder.key);
 						Assert.isTrue("MDC-VALUE".equals(result), "Context propagation is not working");
 					}
-				}))
+				})))
 				.contextWrite(container::save)
 				.block();
 
 		Assert.isTrue("bar".equals(string), "Boom!");
 		System.out.println("Everything is working fine!!");
+	}
+
+}
+
+class Foo {
+
+	public static BiFunction<Mono<String>, ContextView, Publisher<String>> wrap(BiFunction<Mono<String>, ContextContainer, Publisher<String>> arg) {
+		return (stringMono, contextView) -> {
+			ContextContainer restoredContainer = ContextContainer.restore(contextView);
+			return arg.apply(stringMono, restoredContainer);
+		};
 	}
 }
 
