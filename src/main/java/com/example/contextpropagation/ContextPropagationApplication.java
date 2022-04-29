@@ -1,7 +1,7 @@
 package com.example.contextpropagation;
 
-import java.awt.Container;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import com.example.contextpropagation.holder.MdcThreadLocalHolder;
 import com.example.contextpropagation.spi.MdcThreadLocalAccessor;
@@ -40,16 +40,21 @@ class MyCommandLineRunner implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
+		// WE START WITH IMPERATIVE HERE
 
 		MdcThreadLocalHolder.set("MDC-VALUE");
 
+		// Give us the context container, we will take it to a function and add contextWrite and doOnEach
 		ContextContainer container = ContextContainer.create().captureThreadLocalValues();
 
+		// TODO: Ensure that when we put in scope we have access to the CURRENT context container
+
+		// WE GO TO REACTIVE HERE
 		String string = WebClient.builder().baseUrl("http://localhost:8080").build()
 				.get().uri("/foo")
 				.retrieve()
 				.bodyToMono(String.class)
-				.transformDeferredContextual(Foo.wrap((stringMono, restoredContainer) -> stringMono.doOnNext(s -> {
+				.transformDeferredContextual(ContextContainerReactorUtils.withContainer((stringMono, restoredContainer) -> stringMono.doOnNext(s -> {
 					try (ContextContainer.Scope scope = restoredContainer.restoreThreadLocalValues()) {
 						// Thread local
 						String result = MDC.get(MdcThreadLocalHolder.key);
@@ -57,7 +62,17 @@ class MyCommandLineRunner implements CommandLineRunner {
 					}
 				})))
 				.contextWrite(container::save)
+				.doOnEach(signal -> {
+					if (signal.isOnComplete() || signal.isOnError()) {
+						// update container with entries from context ?
+						container.captureContext(signal.getContextView());
+					}
+				})
 				.block();
+
+		Mono<ContextContainer> mono = Mono.deferContextual(ContextContainerReactorUtils.withContainer2(container1 -> {
+			return Mono.just(container1);
+		}));
 
 		Assert.isTrue("bar".equals(string), "Boom!");
 		System.out.println("Everything is working fine!!");
@@ -65,13 +80,17 @@ class MyCommandLineRunner implements CommandLineRunner {
 
 }
 
-class Foo {
+class ContextContainerReactorUtils {
 
-	public static BiFunction<Mono<String>, ContextView, Publisher<String>> wrap(BiFunction<Mono<String>, ContextContainer, Publisher<String>> arg) {
+	public static BiFunction<Mono<String>, ContextView, Publisher<String>> withContainer(BiFunction<Mono<String>, ContextContainer, Publisher<String>> arg) {
 		return (stringMono, contextView) -> {
 			ContextContainer restoredContainer = ContextContainer.restore(contextView);
 			return arg.apply(stringMono, restoredContainer);
 		};
+	}
+
+	public static <T> Function<ContextView, Mono<T>> withContainer2(Function<ContextContainer, Mono<T>> arg) {
+		return view -> arg.apply(ContextContainer.restore(view));
 	}
 }
 
