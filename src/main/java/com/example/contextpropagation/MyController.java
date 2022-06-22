@@ -29,8 +29,7 @@ class MyController {
 	}
 
 	private <T> Consumer<T> instrumentConsumer(ContextView context, Consumer<T> consumer) {
-		ContextSnapshot snapshot = ContextSnapshot.builder().build(context);
-		return snapshot.instrumentConsumer(consumer);
+		return ContextSnapshot.forContextAndThreadLocalValues(context).instrumentConsumer(consumer);
 	}
 
 }

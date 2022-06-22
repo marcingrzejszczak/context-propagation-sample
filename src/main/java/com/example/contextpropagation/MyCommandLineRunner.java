@@ -1,6 +1,5 @@
 package com.example.contextpropagation;
 
-import java.util.Set;
 import java.util.function.Consumer;
 
 import io.micrometer.context.ContextSnapshot;
@@ -31,7 +30,7 @@ class MyCommandLineRunner implements CommandLineRunner {
 		MDC.put(MdcThreadLocalAccessor.KEY, "123");
 		logger.debug("Set MDC ThreadLocal value to 123");
 
-		ContextSnapshot snapshot = ContextSnapshot.builder().build();
+		ContextSnapshot snapshot = ContextSnapshot.forContextAndThreadLocalValues();
 		logger.debug("Created " + snapshot);
 
 		String fooValue = this.service.retrieveFoo()
@@ -56,8 +55,7 @@ class MyCommandLineRunner implements CommandLineRunner {
 		}
 
 		private <T> Consumer<T> instrumentConsumer(ContextView context, Consumer<T> consumer) {
-			ContextSnapshot snapshot = ContextSnapshot.builder().build(context);
-			return snapshot.instrumentConsumer(consumer);
+			return ContextSnapshot.forContextAndThreadLocalValues(context).instrumentConsumer(consumer);
 		}
 	}
 
