@@ -16,8 +16,7 @@
 	<properties>
 		<java.version>17</java.version>
 		<micrometer-contextpropagation.version>1.0.0-SNAPSHOT</micrometer-contextpropagation.version>
-<!--		<reactor-netty.version>1.1.0-SNAPSHOT</reactor-netty.version>-->
-		<reactor-netty.version>1.0.20</reactor-netty.version>
+		<reactor-bom.version>2022.0.0-SNAPSHOT</reactor-bom.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -37,13 +36,11 @@
 		<dependency>
 			<groupId>io.projectreactor.netty</groupId>
 			<artifactId>reactor-netty-core</artifactId>
-			<version>${reactor-netty.version}</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>io.projectreactor.netty</groupId>
 			<artifactId>reactor-netty-http</artifactId>
-			<version>${reactor-netty.version}</version>
 			<scope>compile</scope>
 		</dependency>
 
