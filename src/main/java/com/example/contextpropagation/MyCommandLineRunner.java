@@ -30,7 +30,7 @@ class MyCommandLineRunner implements CommandLineRunner {
 		MDC.put(MdcThreadLocalAccessor.KEY, "123");
 		logger.debug("Set MDC ThreadLocal value to 123");
 
-		ContextSnapshot snapshot = ContextSnapshot.forContextAndThreadLocalValues();
+		ContextSnapshot snapshot = ContextSnapshot.capture();
 		logger.debug("Created " + snapshot);
 
 		String fooValue = this.service.retrieveFoo()
@@ -49,13 +49,13 @@ class MyCommandLineRunner implements CommandLineRunner {
 					.retrieve()
 					.bodyToMono(String.class)
 					.transformDeferredContextual((stringMono, contextView) ->
-							stringMono.doOnNext(instrumentConsumer(contextView, value -> {
+							stringMono.doOnNext(wrap(contextView, value -> {
 								logger.debug("MDC ThreadLocal value is " + MDC.get(MdcThreadLocalAccessor.KEY));
 							})));
 		}
 
-		private <T> Consumer<T> instrumentConsumer(ContextView context, Consumer<T> consumer) {
-			return ContextSnapshot.forContextAndThreadLocalValues(context).instrumentConsumer(consumer);
+		private <T> Consumer<T> wrap(ContextView context, Consumer<T> consumer) {
+			return ContextSnapshot.capture(context).wrap(consumer);
 		}
 	}
 

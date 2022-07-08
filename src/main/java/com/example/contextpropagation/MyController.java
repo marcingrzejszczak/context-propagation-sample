@@ -24,12 +24,12 @@ class MyController {
 	Mono<String> foo() {
 		return Mono.just("bar")
 				.transformDeferredContextual((fooMono, contextView) ->
-						fooMono.doOnNext(instrumentConsumer(contextView, s ->
+						fooMono.doOnNext(wrap(contextView, s ->
 								logger.debug("MDC ThreadLocal value is " + MDC.get(MdcThreadLocalAccessor.KEY)))));
 	}
 
-	private <T> Consumer<T> instrumentConsumer(ContextView context, Consumer<T> consumer) {
-		return ContextSnapshot.forContextAndThreadLocalValues(context).instrumentConsumer(consumer);
+	private <T> Consumer<T> wrap(ContextView context, Consumer<T> consumer) {
+		return ContextSnapshot.capture(context).wrap(consumer);
 	}
 
 }

@@ -29,7 +29,7 @@
 		</dependency>-->
 		<dependency>
 			<groupId>io.micrometer</groupId>
-			<artifactId>context-propagation-api</artifactId>
+			<artifactId>context-propagation</artifactId>
 			<version>${micrometer-contextpropagation.version}</version>
 			<scope>compile</scope>
 		</dependency>
